@@ -1,5 +1,7 @@
 module CGT_KIT_WS2022
 
-greet() = print("Hello World!")
+abstract type GroupElement end
+
+include("AbstractPermutations.jl")
 
 end # module CGT_KIT_WS2022
