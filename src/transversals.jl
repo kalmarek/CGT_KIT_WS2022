@@ -23,21 +23,19 @@ then `tr[x^g]` returns the representative of the `g`-coset of the stabilizer of 
    If no such element exists a `NotInOrbit` exception will be thrown.
  * Iteration protocol, iterating over points in the orbit.
 """
-abstract type AbstractTransversal{S, T<:GroupElement} <: AbstractOrbit{S} end
+abstract type AbstractTransversal{S,T<:GroupElement} <: AbstractOrbit{S} end
 
-Base.eltype(::Type{<:AbstractTransversal{S}}) where S = S
+Base.eltype(::Type{<:AbstractTransversal{S}}) where {S} = S
 
 struct NotInOrbit <: Exception
-    x
-    first
+    x::Any
+    first::Any
 end
 function Base.showerror(io::IO, e::NotInOrbit)
-    print(io, e.x, " was not found in the orbit of ", e.first)
+    return print(io, e.x, " was not found in the orbit of ", e.first)
 end
 
 # implement your transversal structs here, subtyping AbstractTransversal
-struct Transversal{S, T} <: AbstractTransversal{S, T}
-
+struct Transversal{S,T} <: AbstractTransversal{S,T}
+    #
 end
-
-

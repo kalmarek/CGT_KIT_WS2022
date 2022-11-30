@@ -19,7 +19,7 @@ in the following sense:
 """
 mutable struct PointStabilizer{P<:AbstractPermutation}
     S::Vector{P}
-    T#::Transversal{Int, P}
+    T::Transversal{Int,P}
     stab::PointStabilizer{P}
 
     PointStabilizer{P}() where {P} = new{P}(P[])
