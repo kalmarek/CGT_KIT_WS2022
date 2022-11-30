@@ -18,103 +18,105 @@ import CGT_KIT_WS2022: AbstractPermutation, Permutation, AbstractTransversal
 
 # ╔═╡ 21a3249e-6d95-401f-846c-e0ef6ba8c1d5
 mutable struct PointStabilizer{P<:AbstractPermutation}
-	S::Vector{P} # generating set
-	# x::Int # point
-	T #::Transversal ??? # a transversal for the orbit of x in ⟨S⟩
-	stabilizer::PointStabilizer{P} # stabilizer of x in ⟨S⟩
+    S::Vector{P} # generating set
+    # x::Int # point
+    T::Any #::Transversal ??? # a transversal for the orbit of x in ⟨S⟩
+    stabilizer::PointStabilizer{P} # stabilizer of x in ⟨S⟩
 
-	PointStabilizer{P}() where {P} = new{P}(Vector{P}()) #incomplete initialization
+    PointStabilizer{P}() where {P} = new{P}(Vector{P}()) #incomplete initialization
 end
-	
 
 # ╔═╡ 7907f79a-658e-11ed-3a42-f1d9c98feca3
 begin # methods for PointStabilizer
-	gens(pts::PointStabilizer) = pts.S
-	# point(pts::PointStabilizer) = pts.x
-	transversal(pts::PointStabilizer) = pts.T
-	stabilizer(pts::PointStabilizer) = pts.stabilizer
+    gens(pts::PointStabilizer) = pts.S
+    # point(pts::PointStabilizer) = pts.x
+    transversal(pts::PointStabilizer) = pts.T
+    stabilizer(pts::PointStabilizer) = pts.stabilizer
 
-	Base.isempty(pts::PointStabilizer) = isempty(gens(pts)) # point(pts) == 0
-	point(pts::PointStabilizer) = first(transversal(pts))
+    Base.isempty(pts::PointStabilizer) = isempty(gens(pts)) # point(pts) == 0
+    point(pts::PointStabilizer) = first(transversal(pts))
 end
 
 # ╔═╡ 7ba68427-2ea2-4c75-9dc5-cb0ff2e77cf9
 function sift(pts::PointStabilizer, g::AbstractPermutation)
-	if isempty(pts) || isone(g)
-		return g
-	else
-		x = point(pts)
-		δ = x^g
-		T = transversal(pts)
-		if δ in T
-			r = T[δ]
-			g = g*inv(r)
-			@assert x^g == x
-			return sift(stabilizer(pts), x)
-		else
-			return g
-		end
-	end
+    if isempty(pts) || isone(g)
+        return g
+    else
+        x = point(pts)
+        δ = x^g
+        T = transversal(pts)
+        if δ in T
+            r = T[δ]
+            g = g * inv(r)
+            @assert x^g == x
+            return sift(stabilizer(pts), x)
+        else
+            return g
+        end
+    end
 end
 
 # ╔═╡ 0d8cfe1a-32b7-4a5b-a36f-4a74526b79cf
-function extend_chain!(pts::PointStabilizer{P}, g::AbstractPermutation) where P
-	@assert !isone(g)
-	
-	push!(pts.S, g)
-	pts.T = Transversal(first_moved(g), gens(pts)) # needs implementation
-	pts.stabilizer = PointStabilizer{P}()
+function extend_chain!(
+    pts::PointStabilizer{P},
+    g::AbstractPermutation,
+) where {P}
+    @assert !isone(g)
 
-	k = length(T)
-	if k < order(g)
-		extend_chain!(stabilizer(pts), g^k)
-	end
-	return pts
+    push!(pts.S, g)
+    pts.T = Transversal(first_moved(g), gens(pts)) # needs implementation
+    pts.stabilizer = PointStabilizer{P}()
+
+    k = length(T)
+    if k < order(g)
+        extend_chain!(stabilizer(pts), g^k)
+    end
+    return pts
 end
 
 # ╔═╡ 09a2e294-9a14-4e1a-b09a-a85277169288
 function extend_gens!(pts::PointStabilizer, g::AbstractPermutation)
-	@assert !isone(g)
-	# simple version
-	push!(pts.S, g)
-	pts.T = Transversal(point(pts), gens(pts))
-	T = transversal(pts)
-	for s in gens(pts)
-		for δ in transversal(pts) # iteration over points in the orbit
-			r = T[δ]
-			schr_gen = r*s*inv(T[δ^s])
-			if isone(schr_gen)
-				continue
-			else
-				push!(stabilizer(pts), schr_gen)
-			end
-		end
-	end
-	return pts
-end		
+    @assert !isone(g)
+    # simple version
+    push!(pts.S, g)
+    pts.T = Transversal(point(pts), gens(pts))
+    T = transversal(pts)
+    for s in gens(pts)
+        for δ in transversal(pts) # iteration over points in the orbit
+            r = T[δ]
+            schr_gen = r * s * inv(T[δ^s])
+            if isone(schr_gen)
+                continue
+            else
+                push!(stabilizer(pts), schr_gen)
+            end
+        end
+    end
+    return pts
+end
 
 # ╔═╡ 558cda3b-4a7d-4294-b3a6-4d68ce45274f
 function Base.push!(pts::PointStabilizer, g::AbstractPermutation)
-	g = sift(pts, g)
-	if isone(g)
-		return pts
-	end
-	if isempty(pts) # we're at the bottom of the chain
-		extend_chain!(pts, g)
-	else
-		extend_gens!(pts, g)
-	end
-	return pts
+    g = sift(pts, g)
+    if isone(g)
+        return pts
+    end
+    if isempty(pts) # we're at the bottom of the chain
+        extend_chain!(pts, g)
+    else
+        extend_gens!(pts, g)
+    end
+    return pts
 end
 
 # ╔═╡ 7832c6c5-0494-41f7-baa0-ea1d9c60f7be
 function schreier_sims(S::AbstractVector{<:AbstractPermutation})
-	@assert !isempty(S)
-	pts = PointStabilizer{eltype(S)}()
-	for s in S
-		push!(pts, s)
-	end
-	return pts # we're sure pts is going to be initialized
+    @assert !isempty(S)
+    pts = PointStabilizer{eltype(S)}()
+    for s in S
+        push!(pts, s)
+    end
+    return pts # we're sure pts is going to be initialized
 end
 
 # ╔═╡ 86387952-69fa-4343-a041-6db4ee69c90a
@@ -130,22 +132,22 @@ md"
 # ╔═╡ d243f95c-fd5b-40b3-9e43-fc9fcc442ef5
 md"
 > **Exercise 3**: Run the Schreier-Sims algorithm for the groups generated by the following sets and compute their orders:
-> * `G₀ = ⟨(1,2,3,4), (3,4)⟩`
-> * `G₁ = ⟨(1,2,3), (2,3,4), (3,4,1), (4,1,2)⟩`
-> * `G₂ = ⟨(1,3,5,8)(2,4,6,8), (1,3,8)(4,5,7)⟩`
-> * `G₃ = ⟨(1,2,3,4), (5,6,7,8), (9,10,11,12), (13,14,15,16), (1,5,9,13), (2,6,10,14), (3,7,11,15), (4,8,12,16)⟩`
-> * `G₄` generated by
+> * `G₀ = ⟨(1,2,3,4), (3,4)⟩` (of order `24`)
+> * `G₁ = ⟨(1,2,3), (2,3,4), (3,4,1), (4,1,2)⟩` (of order `12`)
+> * `G₂ = ⟨(1,3,5,7)(2,4,6,8), (1,3,8)(4,5,7)⟩` (of order `24`)
+> * `G₃ = ⟨(1,2,3,4), (5,6,7,8), (9,10,11,12), (13,14,15,16), (1,5,9,13), (2,6,10,14), (3,7,11,15), (4,8,12,16)⟩` (of order `16!`)
+> * `G₄` -- a permutation presentation of `C₂≀S₄` of order `384` generated by
 >    1. `(2,9)(4,11)(6,13)(8,15)`
 >    2. `(5,9)(6,10)(7,11)(8,12)`,
 >    3. `(3,5)(4,6)(11,13)(12,14)`,
 >    4. `(1,16)(2,8)(3,14)(4,6)(5,12)(7,10)(9,15)(11,13)`,
 >    5. `(1,3)(2,11)(4,9)(5,7)(6,15)(8,13)(10,12)(14,16)`
-> * `G₅` the rubik 2-cube group generated by
->   1. `(1,2,5,8)(3,14,10,6)(4,7,12,16)(9,21,18,13)(11,15,19,22)(17,24,23,20)`, 
+> * `G₅` the rubik 2-cube group (of order `88_179_840`) generated by
+>   1. `(1,2,5,8)(3,14,10,6)(4,7,12,16)(9,21,18,13)(11,15,19,22)(17,24,23,20)`,
 >   2. `(1,3,5,10)(2,6,8,14)(4,9,12,18)(7,13,16,21)(11,17,19,23)(15,20,22,24)`,
 >   3. `(1,4,11)(2,7,15)(3,9,17)(5,12,19)(6,13,20)(8,16,22)(10,18,23)(14,21,24)`,
 >   4. `(1,5)(2,8)(3,10)(4,12)(6,14)(7,16)(9,18)(11,19)(13,21)(15,22)(17,23)(20,24)`
-> * `G₆` the rubik 3-cube group generated by
+> * `G₆` the rubik 3-cube group (of order `43_252_003_274_489_856_000`) generated by
 >   1. `(1,3,8,6)(2,5,7,4)(9,33,25,17)(10,34,26,18)(11,35,27,19)`,
 >   2. `(9,11,16,14)(10,13,15,12)(1,17,41,40)(4,20,44,37)(6,22,46,35)`,
 >   3. `(17,19,24,22)(18,21,23,20)(6,25,43,16)(7,28,42,13)(8,30,41,11)`,
@@ -157,7 +159,7 @@ md"
 
 # ╔═╡ 997cffeb-faf4-4be7-8bfb-5664925a669c
 md"
-> **Exercise 4**: Implement a better (more optimized) version of `extend_gens!` where only the necessary parts of the transversal are recomputed and no Schreier generator is processed twice. 
+> **Exercise 4**: Implement a better (more optimized) version of `extend_gens!` where only the necessary parts of the transversal are recomputed and no Schreier generator is processed twice.
 "
 
 # ╔═╡ 7a820d6e-e939-4f60-a335-dd7152375d73
@@ -174,12 +176,11 @@ md"
 >  * Implement operations on such words.
 >  * Which operations are easy for such words, and which are time consuming?
 >  * Measure the impact on performance of using words in Schreier-Sims algorithm.
-> 
-> _Tip_: Use negative integers to denote inverses and simplify words before evaluation. 
+>
+> _Tip_: Use negative integers to denote inverses and simplify words before evaluation.
 "
 
 # ╔═╡ d1f845ff-0be1-4932-9e35-42e945e758c0
-
 
 # ╔═╡ Cell order:
 # ╠═ae649f9f-6853-4db2-a8c2-04793cafd19b
