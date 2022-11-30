@@ -23,20 +23,20 @@ By convention `degree` of the trivial permutation must return `1`.
 """
 function degree end
 
-Base.one(σ::P) where P<:AbstractPermutation = P(Int[], false)
+Base.one(σ::P) where {P<:AbstractPermutation} = P(Int[1], false)
 Base.isone(σ::AbstractPermutation) = degree(σ) == 1
 
-function Base.inv(σ::P) where P<:AbstractPermutation
-    img = similar(1:degree(σ))
+function Base.inv(σ::P) where {P<:AbstractPermutation}
+    img = Vector{Int}(undef, degree(σ))
     for i in 1:degree(σ)
-        img[i^σ] = i
+        @inbounds img[i^σ] = i
     end
     return P(img, false)
 end
 
-function Base.:(*)(σ::P, τ::AbstractPermutation) where P<:AbstractPermutation
+function Base.:(*)(σ::P, τ::AbstractPermutation) where {P<:AbstractPermutation}
     deg = max(degree(σ), degree(τ))
-    img = similar(1:deg)
+    img = Vector{Int}(undef, deg)
     for i in 1:deg
         img[i] = (i^σ)^τ
     end
@@ -69,7 +69,6 @@ function Base.show(io::IO, σ::AbstractPermutation)
             if length(cycle) == 1
                 continue
             else
-                is_trivial = false
                 print(io, "(")
                 join(io, cycle, ",")
                 print(io, ")")
@@ -95,7 +94,7 @@ function cycle_decomposition(σ::AbstractPermutation)
     return cycles
 end
 
-function orbit_plain(x, s::GroupElement, action=^)
+function orbit_plain(x, s::GroupElement, action = ^)
     Δ = [x]
     γ = action(x, s)
     while γ != x

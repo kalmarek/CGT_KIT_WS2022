@@ -33,11 +33,11 @@ point(pts::PointStabilizer) = first(transversal(pts))
 istrivial(pts::PointStabilizer) = isempty(gens(pts))
 
 # schreier_sims implementation
-function schreier_sims(S::AbstractVector{P}) where P<:AbstractPermutation
+function schreier_sims(S::AbstractVector{P}) where {P<:AbstractPermutation}
     sc = PointStabilizer{P}()
     for s in S
         push!(sc, s)
-        end
+    end
     return sc
 end
 
@@ -63,14 +63,17 @@ function sift(pts::PointStabilizer, g::AbstractPermutation)
             return g
         else
             r = T[δ]
-            g = g*inv(r)
+            g = g * inv(r)
             @assert x^g == x
             return isone(g) ? g : sift(stabilizer(pts), g)
         end
     end
 end
 
-function extend_chain!(pts::PointStabilizer{P}, g::AbstractPermutation) where {P}
+function extend_chain!(
+    pts::PointStabilizer{P},
+    g::AbstractPermutation,
+) where {P}
     @assert !isone(g)
 
     # we want to modify pts in-place, so we access the fields directly
