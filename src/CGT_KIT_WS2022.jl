@@ -2,6 +2,8 @@ module CGT_KIT_WS2022
 
 abstract type GroupElement end
 
+export @perm_str
+
 Base.literal_pow(::typeof(^), x::GroupElement, ::Val{-1}) = inv(x)
 Base.copy(x::GroupElement) = one(x)*x
 function Base.:^(x::GroupElement, n::Integer)
