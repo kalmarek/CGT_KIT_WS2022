@@ -1,25 +1,31 @@
 struct Permutation <: AbstractPermutation
     images::Vector{Int}
 
-    function Permutation(v::Vector{<:Integer}, check=true)
+    function Permutation(images::AbstractVector{<:Integer}, check = true)
         if check
-            @assert sort(v) == 1:length(v) "Image vector doesn't define a permutation"
+            @assert Base.require_one_based_indexing(images)
+            !isperm(images) &&
+                throw("Image vector doesn't define a permutation")
         end
-        return new(v)
+
+        k = 1
+        for idx in length(images):-1:1
+            if images[idx] ≠ idx
+                k = idx
+                break
+            end
+        end
+        return new(@view images[1:k])
     end
 end
 
 # ## Interface of AbstractPermutation
-Base.:^(n::Integer, σ::Permutation) =
-    (n > length(σ.images) ? convert(Int, n) : σ.images[n])
+degree(σ::Permutation) = length(σ.images)
 
-function degree(σ::Permutation)
-    for i in length(σ.images):-1:1
-        if i^σ ≠ i
-            # resize!(σ.images, i)
-            return i
-        end
+function Base.:^(n::Integer, σ::Permutation)
+    if 1 ≤ n ≤ length(σ.images)
+        return oftype(n, @inbounds σ.images[n])
+    else
+        return n
     end
-    return 1
-    # return something(findlast(i->σ.images[i]!=i, 1:length(σ.images)), 1)
 end

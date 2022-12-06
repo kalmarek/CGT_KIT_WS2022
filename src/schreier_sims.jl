@@ -15,11 +15,11 @@ in the following sense:
  * `transversal(pts)` is the transversal of `βₖ` w.r.t. to `gens(pts)` and
  * `stabilizer(pts)::PointStabilizer` represents `Gₖ₊₁`.
 
-`pts` represents `G₀` (i.e. the trivial group) if `isempty(pts) == true`.
+`pts` represents `G₀` (i.e. the trivial group) if `istrivial(pts) == true`.
 """
 mutable struct PointStabilizer{P<:AbstractPermutation}
     S::Vector{P}
-    T#::Transversal{Int, P}
+    T::Transversal{Int,P}
     stab::PointStabilizer{P}
 
     PointStabilizer{P}() where {P} = new{P}(P[])
@@ -30,15 +30,14 @@ stabilizer(pts::PointStabilizer) = pts.stab
 transversal(pts::PointStabilizer) = pts.T
 
 point(pts::PointStabilizer) = first(transversal(pts))
-Base.isempty(pts::PointStabilizer) = isempty(gens(pts))
-# maybe `Base.isone(pts)`, or `istrivial` are better names?
+istrivial(pts::PointStabilizer) = isempty(gens(pts))
 
 # schreier_sims implementation
-function schreier_sims(S::AbstractVector{P}) where P<:AbstractPermutation
+function schreier_sims(S::AbstractVector{P}) where {P<:AbstractPermutation}
     sc = PointStabilizer{P}()
     for s in S
         push!(sc, s)
-        end
+    end
     return sc
 end
 
@@ -46,7 +45,7 @@ function Base.push!(pts::PointStabilizer, g::AbstractPermutation)
     g = sift(pts, g)
     isone(g) && return pts
 
-    if isempty(pts)
+    if istrivial(pts)
         extend_chain!(pts, g)
     else
         extend_gens!(pts, g)
@@ -54,7 +53,7 @@ function Base.push!(pts::PointStabilizer, g::AbstractPermutation)
 end
 
 function sift(pts::PointStabilizer, g::AbstractPermutation)
-    if isempty(pts) || isone(g)
+    if istrivial(pts) || isone(g)
         return g
     else
         T = transversal(pts)
@@ -64,14 +63,17 @@ function sift(pts::PointStabilizer, g::AbstractPermutation)
             return g
         else
             r = T[δ]
-            g = g*inv(r)
+            g = g * inv(r)
             @assert x^g == x
             return isone(g) ? g : sift(stabilizer(pts), g)
         end
     end
 end
 
-function extend_chain!(pts::PointStabilizer{P}, g::AbstractPermutation) where {P}
+function extend_chain!(
+    pts::PointStabilizer{P},
+    g::AbstractPermutation,
+) where {P}
     @assert !isone(g)
 
     # we want to modify pts in-place, so we access the fields directly
