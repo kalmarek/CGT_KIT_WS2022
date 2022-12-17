@@ -33,6 +33,15 @@ point(pts::PointStabilizer) = first(transversal(pts))
 istrivial(pts::PointStabilizer) = isempty(gens(pts))
 
 # schreier_sims implementation
+
+function schreier_sims(
+    S::AbstractVector{P},
+    ord::Integer,
+) where {P<:AbstractPermutation}
+    @warn "TODO: implement schreier_sims using order"
+    return schreier_sims(S)
+end
+
 function schreier_sims(S::AbstractVector{P}) where {P<:AbstractPermutation}
     sc = PointStabilizer{P}()
     for s in S
