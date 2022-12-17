@@ -328,7 +328,7 @@ begin
 				# we could/should add some consistency checks here e.g.
 	            @assert order(stab_chain) == order
 	        	@assert all(gens) do g
-	            	_,r = CGT.sift(g, stab_chain)
+	            	r = CGT.sift(g, stab_chain)
 	                isone(r)
 	        	end
 			end
@@ -418,7 +418,7 @@ With this we can implement a few other methods:
 # ╔═╡ a5ba703f-a029-4125-b41f-a07f69ba3eff
 begin
 	function Base.in(G::AbstractPermGroup, p::CGT.AbstractPermutation)
-	    _, r = sift(stabilizer_chain(G), p)
+	    r = sift(stabilizer_chain(G), p)
 	    return isone(r)
 	end
 	
@@ -446,6 +446,8 @@ Of course the latter is a blatant lie, but since nobody is ever going to iterate
 # ╔═╡ 7d392697-2f82-4124-8543-5475c786e9dc
 md"
 # Exercices:
+> **Exercise 0**: modify `CGT` package to incorporate code from this notebook into the package.
+
 > **Exercise 1**: Implement a method to reconstruct group element from the images of a given basis of a stabilizer chain.
 > Use this to implement `rand` method for obtaining uniformly random elements from the group.
 
@@ -453,9 +455,6 @@ md"
 
 > **Exercise 3**: Implement iteration using function from Ex 1. to finalize the iteration protocol for `PermutationGroups`. Is this slower or faster than performing a backtract on stabilizer chain (never pruning and return all leafs).
 "
-
-# ╔═╡ e7931440-75ea-4ee3-bf7e-17dd6134115d
-
 
 # ╔═╡ Cell order:
 # ╟─a5154174-1cc5-470a-81ba-08770e87d54f
@@ -501,4 +500,3 @@ md"
 # ╠═0483c1cb-5869-4e2f-ac29-8092c873e7db
 # ╟─3db5aa8f-bf70-49db-84dc-2e35a4dd7af5
 # ╟─7d392697-2f82-4124-8543-5475c786e9dc
-# ╠═e7931440-75ea-4ee3-bf7e-17dd6134115d
