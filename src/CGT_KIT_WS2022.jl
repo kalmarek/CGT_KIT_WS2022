@@ -1,5 +1,7 @@
 module CGT_KIT_WS2022
 
+using Random
+
 abstract type GroupElement end
 
 export @perm_str
