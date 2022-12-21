@@ -48,22 +48,31 @@ md"""
 """
 
 # ╔═╡ dfe2b536-77e9-47cb-9180-1ca0e7c0924a
-struct Alphabet{T}
+struct Alphabet{T} # T is the type of letters
 	...
 end
 
 # for implementing the error have a look at transversal where NotInOrbit Exception is defined
 
-Base.getindex(A::Alphabet{T}, letter::T) where T = ...
-Base.getindex(A::Alphabet, index::Integer) = ...
-setinverse!(A::Alphabet{T}, x::T, X::T) = ...
-Base.inv(A::Alphabet{T}, letter::T) = ...
-Base.inv(A::Alphabet{T}, index::Integer) = ...
+Base.getindex(A::Alphabet{T}, letter::T) where T = ... # return the ordinal of `letter` i.e. an integer; A[a] -> 1 (an integer)
+Base.getindex(A::Alphabet, n::Integer) = ... # return the n-th letter of A
+# A[3] -> 'c' (a letter)
+	
+setinverse!(A::Alphabet{T}, x::T, X::T) = ... # set the value of `inv` involution
 
+Base.inv(A::Alphabet{T}, letter::T) = ... # the inverse of `letter` as T 
+Base.inv(A::Alphabet{T}, n::Integer) = ... # the ordinal of the inverse of `n`-th letter
+# n = 2
+# l = A[n]; # a letter
+# linv = inv(A, l) # a letter
+# m = A[linv] # an ordinal
+# m == inv(A, n)
+	
 hasinverse(A::Alphabet{T}, letter::T) = hasinverse(A, A[letter])
-hasinverse(A::Alphabet, index::Integer) = ...
+hasinverse(A::Alphabet, index::Integer) = ... # is the partially defined `inv` defined for this particular `index`
 
-Base.iterate(A::Alphabet) = ...
+Base.iterate(A::Alphabet) = ... #iterate over the alphabet
+Base.iterate(A::Alphabet, state) = ...
 Base.length(A) = ...
 
 function Base.show(io::IO, A::Alphabet{T}) where T
@@ -82,7 +91,7 @@ end
 md"
 > **Exercise 2**: Move your implementation of `Alphabet`s to `CGT_KIT_WS2022` package, that is
 > * move the code implementing `Alphabets` to `src/alphabets.jl`;
-> * add the appropriate `inlude` line to `src/CGT_KIT_WS2022.jl`;
+> * add the appropriate `include` line to `src/CGT_KIT_WS2022.jl`;
 > * write a comprehensive test suite for your implementation and put it into `test/alphabets.jl`;
 > * enable the written `@testset` by adding the appropriate `include` to `test/runtests.jl`.
 "
@@ -94,6 +103,18 @@ md"
 > * Implement your own vector-like to get acquainted with the interface (`FizzBuzz` vector? first `n` primes? etc.)
 > * check that for your vector iteration works as it should, and so does taking slices: `v[5:2:15]`, `@view(v[5:15])` etc.
 "
+
+# ╔═╡ 928f4015-c30a-43a7-a871-a14a1b80d3ce
+vvv = collect(1:25)
+
+# ╔═╡ 0f34e318-d3d2-417c-829a-f417181e3650
+vvv[5:15]
+
+# ╔═╡ a0074f67-372e-4e63-9b1f-4274f2f9519d
+w = @view vvv[5:15]
+
+# ╔═╡ be6fad98-cf59-4fb4-a85f-61846412f522
+w[end]
 
 # ╔═╡ a9035c44-1d3a-4ca4-8bff-a5df7e73f250
 md"""
@@ -110,43 +131,75 @@ md"""
 This allows to write `mul!(a,a,b)` without allocating a new separate word if after computing `a*b` we're no longer interested in `a`.
 """
 
+# ╔═╡ ed5c84f1-f980-4e78-81b4-a5bc88ad6c50
+typeof(size(vvv))
+
+# ╔═╡ ee8bfc77-7ae6-4f53-a6ab-3526a5c149e9
+size(rand(3,4,5))
+
 # ╔═╡ 9e495a33-be52-4d10-ba96-046a81b7f2cd
 abstract type AbstractWord{T} <: AbstractVector{T} end
 
 one(w::AbstractWord) = one(typeof(w))
 isone(w::AbstractWord) = iszero(length(w))
+
+function Base.:*(w::AbstractWord, v::AbstractWord)
+	return mul!(one(w), w, v)
+end
+
 # resize!
 # append!
 
 # concrete implementation
 
-struct Word{T} <: AbstractWord{T}
-	letter_indices::Vector{T}
+struct Word{T} <: AbstractWord{T} # <: AbstractVector{T}
+	letters::Vector{T}
 end
 
-#Implement abstract Vector interface
-# Base.size(w::Word) = ...
-# Base.getindex(w::Word, i::Integer) = ...
+Base.inv(w::AbstractWord, A::Alphabet) = inv!(similar(w), w, A)
+
+function inv!(out::AbstractWord, w::AbstractWord, A::Alphabet)
+	resize!(out, length(w))
+	# for letter in reverse(w) # allocate vector containing reversed w
+	for (idx, letter) in enumerate(Iterators.reverse(w))
+		out[idx] = inv(letter, A)
+	end
+	return out
+end
+
+# "Word Interface"
+Base.one(::Type{Word{T}}) = Word(Vector{T}())
+
+# Implement abstract Vector interface
+Base.size(w::Word) = size(w.letters)
+Base.getindex(w::Word, i::Int) = w.letters[i]
+Base.setindex!(w::Word, value, idx::Int) = w.letters[idx] = value
 
 # * multiplication
-function Base.:*(w::AbstractWord, v::AbstractWord)
-	return mul!(one(w), w, v)
-end
-
-function mul!(out::AbstractWord, w::AbstractWord, v::AbstractWord)
-	# resize!(out, length(w)+length(v))
-	out = resize!(out, 0)
-	out = append!(out, w)
-	out = append!(out, v)
+function mul!(out::AbstractWord, w::Word, v::Word)
+	@assert out !== w # out and w occupy different places in memory
+	# this is now correct, but doesn't allow us to do
+	# mul!(a,a,b) override a with content of a*b
+	resize!(out, 0)
+	append!(out.letters, w) # this should work as appending of w::AbstractVector to out.letters::Vector{T} is defined
+	append!(out.letters, v)
 	return out
 end
  
+
+# ╔═╡ 3fb89a96-c9ca-4088-97d2-6f9b37706d79
+md"
+Here are two more functions related to IO for `AbstractWords` that may make your life a bit easier:
+"
+
+# ╔═╡ c6862047-55e9-4a08-ba2d-f9d6491fcdb1
+
 
 # ╔═╡ 827688ff-f673-4ebe-8483-dd73fd4350a6
 md"
 > **Exercise 4**: Using `Word`s and `Alphabet` implement a `free_rewrite` function which returns the freely reduced form for word `w`. Test it on a variety of inputs: `ε`, `x`, `X`, `x·X`, `y·x·X`, `y·Y·x·X`, `y·X·x·Y` etc. (also with non-invertible letters in `A`).
 >
-> What is the complexity of your implementation as a function of `length(w)`?
+> What is the complexity of your implementation as a function of `n = length(w)`?
 "
 
 # ╔═╡ 69acb0c9-9f7d-434c-82a4-09c04a1df6fc
@@ -155,6 +208,12 @@ md"
 > * `SubWord` which only stores reference to a contiguous subword of another `AbstractWord` (have a look at what `view(v, 2:7)`)
 > * `BufferWord` which stores a word as double-ended queue so that `push!`, `pop!`, `pushfirst!` and `popfirst!` are (amortised) constant cost and non-allocating.
 "
+
+# ╔═╡ f901a8c7-b8d8-40d0-abc3-6142cae4dafe
+@view vvv[2:6]
+
+# ╔═╡ ff40fb0d-debb-42af-8125-fc243c9e743d
+view(vvv, 2:6)
 
 # ╔═╡ 50d69882-1d24-4563-a45a-362b569fff38
 md"""
@@ -200,11 +259,21 @@ project_hash = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
 # ╠═dfe2b536-77e9-47cb-9180-1ca0e7c0924a
 # ╟─6980e75d-08af-4fd0-8ee5-40ed3876ef63
 # ╟─dbb3b925-65cf-4d47-b982-ca7950741dc3
+# ╠═928f4015-c30a-43a7-a871-a14a1b80d3ce
+# ╠═0f34e318-d3d2-417c-829a-f417181e3650
+# ╠═a0074f67-372e-4e63-9b1f-4274f2f9519d
+# ╠═be6fad98-cf59-4fb4-a85f-61846412f522
 # ╟─a9035c44-1d3a-4ca4-8bff-a5df7e73f250
+# ╠═ed5c84f1-f980-4e78-81b4-a5bc88ad6c50
+# ╠═ee8bfc77-7ae6-4f53-a6ab-3526a5c149e9
 # ╠═9e495a33-be52-4d10-ba96-046a81b7f2cd
+# ╟─3fb89a96-c9ca-4088-97d2-6f9b37706d79
+# ╠═c6862047-55e9-4a08-ba2d-f9d6491fcdb1
 # ╟─827688ff-f673-4ebe-8483-dd73fd4350a6
 # ╟─69acb0c9-9f7d-434c-82a4-09c04a1df6fc
-# ╠═50d69882-1d24-4563-a45a-362b569fff38
+# ╠═f901a8c7-b8d8-40d0-abc3-6142cae4dafe
+# ╠═ff40fb0d-debb-42af-8125-fc243c9e743d
+# ╟─50d69882-1d24-4563-a45a-362b569fff38
 # ╠═654848c2-b7b7-41a3-ab56-d2d07a1a9a8d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
