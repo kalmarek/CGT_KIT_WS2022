@@ -9,3 +9,4 @@ include("transversals.jl")
 include("schreier_sims.jl")
 
 include("perm_groups.jl")
+include("alphabets.jl")
