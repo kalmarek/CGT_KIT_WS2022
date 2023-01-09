@@ -10,3 +10,4 @@ include("schreier_sims.jl")
 
 include("perm_groups.jl")
 include("alphabets.jl")
+include("words.jl")
