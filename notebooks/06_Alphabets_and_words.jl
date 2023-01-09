@@ -34,7 +34,7 @@ If we store only small integers (i.e. indices of letters in an alphabet) and the
 3. We can use vectorized instructions to speed-up common tasks on words such as:
   * checking equality of words,
   * finding a subword,
-  * checking if a prefix of a word is a suffix of another one. 
+  * checking if a prefix of a word is a suffix of another one.
 """
 
 # ╔═╡ 28018283-a925-43cb-9f0d-fa425f724323
@@ -57,17 +57,17 @@ end
 Base.getindex(A::Alphabet{T}, letter::T) where T = ... # return the ordinal of `letter` i.e. an integer; A[a] -> 1 (an integer)
 Base.getindex(A::Alphabet, n::Integer) = ... # return the n-th letter of A
 # A[3] -> 'c' (a letter)
-	
+
 setinverse!(A::Alphabet{T}, x::T, X::T) = ... # set the value of `inv` involution
 
-Base.inv(A::Alphabet{T}, letter::T) = ... # the inverse of `letter` as T 
+Base.inv(A::Alphabet{T}, letter::T) = ... # the inverse of `letter` as T
 Base.inv(A::Alphabet{T}, n::Integer) = ... # the ordinal of the inverse of `n`-th letter
 # n = 2
 # l = A[n]; # a letter
 # linv = inv(A, l) # a letter
 # m = A[linv] # an ordinal
 # m == inv(A, n)
-	
+
 hasinverse(A::Alphabet{T}, letter::T) = hasinverse(A, A[letter])
 hasinverse(A::Alphabet, index::Integer) = ... # is the partially defined `inv` defined for this particular `index`
 
@@ -80,7 +80,7 @@ function Base.show(io::IO, A::Alphabet{T}) where T
 	for letter in A
 		print(io, A[letter], "\t, letter")
 		if hasinverse(A, letter)
-			println(io, " with inverse", A[inv(A, A[letter]]))
+			println(io, " with inverse", A[inv(A, A[letter])])
 		else
 			println(io, "")
 		end
@@ -98,7 +98,7 @@ md"
 
 # ╔═╡ dbb3b925-65cf-4d47-b982-ca7950741dc3
 md"
-> **Exercise 2.5**: 
+> **Exercise 2.5**:
 > * Read about [`AbstractArray` interface](https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array).
 > * Implement your own vector-like to get acquainted with the interface (`FizzBuzz` vector? first `n` primes? etc.)
 > * check that for your vector iteration works as it should, and so does taking slices: `v[5:2:15]`, `@view(v[5:15])` etc.
@@ -185,7 +185,7 @@ function mul!(out::AbstractWord, w::Word, v::Word)
 	append!(out.letters, v)
 	return out
 end
- 
+
 
 # ╔═╡ 3fb89a96-c9ca-4088-97d2-6f9b37706d79
 md"
@@ -193,7 +193,27 @@ Here are two more functions related to IO for `AbstractWords` that may make your
 "
 
 # ╔═╡ c6862047-55e9-4a08-ba2d-f9d6491fcdb1
+function Base.show(io::IO, ::MIME"text/plain", w::AbstractWord)
+    if isone(w)
+        print(io, 'ε')
+    else
+        l = length(w)
+        for (i, letter) in enumerate(w)
+            print(io, letter)
+            if i < l
+                print(io, '·')
+            end
+        end
+    end
+end
 
+function string_repr(w::AbstractWord, A::Alphabet)
+    if isone(w)
+        return sprint(show, w)
+    else
+        return join((A[idx] for idx in w), '·')
+    end
+end
 
 # ╔═╡ 827688ff-f673-4ebe-8483-dd73fd4350a6
 md"
@@ -245,7 +265,7 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.3"
+julia_version = "1.8.4"
 manifest_format = "2.0"
 project_hash = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
 
