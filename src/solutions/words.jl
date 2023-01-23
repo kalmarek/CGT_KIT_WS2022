@@ -12,5 +12,7 @@ Base.prepend!(w::Word, v::AbstractWord) = prepend!(w.letters, v)
 
 # Implement abstract Vector interface
 Base.size(w::Word) = size(w.letters)
-Base.getindex(w::Word, i::Int) = w.letters[i]
-Base.setindex!(w::Word, value, idx::Int) = w.letters[idx] = value
+Base.@propagate_inbounds Base.getindex(w::Word, i::Int) = w.letters[i]
+Base.@propagate_inbounds function Base.setindex!(w::Word, value, idx::Int)
+    return w.letters[idx] = value
+end
