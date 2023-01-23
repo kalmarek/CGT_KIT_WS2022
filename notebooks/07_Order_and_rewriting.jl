@@ -64,7 +64,7 @@ The content of `w` is undefined after the call.
 function rewrite!(out::AbstractWord, w::AbstractWord, rw::RW) where RW
 	resize!(out, length(w))
 	copyto!(out, w)
-	return out 
+	return out
 end
 ```
 But maybe it's better to throw an informative error?
@@ -79,14 +79,11 @@ The content of `w` is undefined after the call.
 """
 function rewrite!(out::AbstractWord, w::AbstractWord, rw::Any)
 	throw("rewriting with $rw is not defined; you need to implement
-	`rewrite(::AbstractWord, ::AbstractWord, rw::$(typeof(rw))` yourself")
+	`rewrite(::AbstractWord, ::AbstractWord, rw::$(typeof(rw)))` yourself")
 end
 
 # ╔═╡ 3a26113f-0d82-4758-b0a6-da1dabfa47f7
 w = CGT.Word(rand(1:3, 20))
-
-# ╔═╡ ca91b7a4-c56c-4ab4-8cf4-979db658a46e
-# rewrite(w, [1,2,3])
 
 # ╔═╡ 01b81672-f5b4-4851-9b4b-c0621f567caf
 
@@ -105,17 +102,22 @@ Freely rewrite word `w` storing the result in `v` by applying inverses present i
 """
 function rewrite!(v::AbstractWord, w::AbstractWord, A::CGT.Alphabet)
     # throw("Not Implemented Yet")
+	# sizehint!(v, length(w))
+	resize!(v, 0)
 	for l in w
 		if isone(v)
 			push!(v, l)
-		elseif CGT.hasinverse(A, v[end]) && inv(A, v[end]) == l
-			resize!(v, length(v) - 1)
+		elseif CGT.hasinverse(A, l) && inv(A, l) == last(v)
+			resize!(v, length(v)-1)
 		else
 			push!(v, l)
 		end
 	end
     return v
 end
+
+# ╔═╡ a0616435-6830-4c8a-b5e2-d405f307c5ad
+# Base.sizehint!(w::CGT.Word, n) = sizehint!(w.letters, n)
 
 # ╔═╡ 5395c18a-2609-4477-9e2e-20313b1cba7d
 
@@ -175,6 +177,9 @@ and we output `v = ba` as the rewritten `w`.
 # ╔═╡ afcbb250-599c-4dd2-ac97-fa6d515e9305
 md"### Rules"
 
+# ╔═╡ 625926a5-feb3-4792-8953-bf9e60c41d5f
+1=>"aaa"
+
 # ╔═╡ e08b6428-77db-4a35-9f82-b90526deb3bf
 const Rule{W} = Pair{W, W} where W <: AbstractWord
 
@@ -186,7 +191,7 @@ r isa Rule
 
 # ╔═╡ 03832acd-37f3-4426-b07f-c3c9ba3cb0a2
 function rewrite!(v::AbstractWord, w::AbstractWord, rule::Rule)
-    lhs, rhs = rule
+    lhs, rhs = rule # destructuring pair into two objects
     while !isone(w)
         push!(v, popfirst!(w))
         if issuffix(lhs, v)
@@ -217,7 +222,7 @@ md"""
 # ╔═╡ 87fd6f32-7953-44d8-b153-a957d8d30f42
 md"
 ## Rewriting systems
-Finally this is a rewriting w.r.t. a rewriting system `rws`. Later on we'll see a much more efficient way of rewriting using so called index automaton (sometimes referred to as Aho-Corasick FSA/transducer). 
+Finally this is a rewriting w.r.t. a rewriting system `rws`. Later on we'll see a much more efficient way of rewriting using so called index automaton (sometimes referred to as Aho-Corasick FSA/transducer).
 "
 
 # ╔═╡ 8dc7bca9-58d6-4071-96f2-bd0540593f0b
@@ -257,19 +262,22 @@ function rewrite(
     w::W,
     rewriting,
     vbuffer = one(w),
-    wbuffer = one(w), 
-) where W
+    wbuffer = one(w),
+) where W <: AbstractWord
 	resize!(vbuffer, 0) # empty vbuffer
-	
+
 	# copy the content of w to wbuffer, possibly adjusting its size
 	resize!(wbuffer, length(w))
 	copy!(wbuffer, w)
-	
+
 	# do the destructive rewriting from `wbuffer` to `vbuffer`
     v = rewrite!(vbuffer, wbuffer, rewriting)
     return W(v) # return the result of the same type as w
 	# and not-aligned with any args passed!
 end
+
+# ╔═╡ ca91b7a4-c56c-4ab4-8cf4-979db658a46e
+rewrite(w, [1,2,3])
 
 # ╔═╡ c6242096-6d68-4022-be6c-fe03983ad9bd
 @testset "free reduction" begin
@@ -314,24 +322,23 @@ end
 `LenLex` order compares words first by length and then by lexicographic (left-to-right) order.
 """
 struct LenLex{T} <: WordOrdering
-	....
+	alphabet::Alphabet{T}
+	letters_perm::Vector{Int}
 end
-# A = Alphabet([:a, :A, :b, :B])
-# LenLex(A, [:a, :B, :b, :A])
+# A = Alphabet([:a, :b, :A, :B])
+# LenLex(A, [:a, :A, :b, :B])
 
 function lt(o::LenLex, lp::Integer, lq::Integer)
 	....
 end
 
 function lt(o::LenLex, p::AbstractWord, q::AbstractWord)
-    if length(p) == length(q)
+	if length(p) == length(q)
 		for (lp, lq) in zip(p, q)
 			if lp == lq
 				continue
-			elseif lt(o, lp, lq)
-				return true
 			else
-				return false
+				return lt(o, lp, lq)
 			end
 		end
 		return false # i.e. p == q
@@ -339,6 +346,9 @@ function lt(o::LenLex, p::AbstractWord, q::AbstractWord)
 		return length(p) < length(q)
 	end
 end
+
+# ╔═╡ 6f39f841-4db3-4412-87d7-8b4f00c94d33
+
 
 # ╔═╡ 700d57e9-5734-47d5-aba3-6c66ccb4b430
 md"
@@ -388,7 +398,7 @@ and many more.
 
 # ╔═╡ Cell order:
 # ╠═781b7f6c-903d-11ed-0165-8bab2340acf4
-# ╟─d1dc1c2e-a0fa-41fc-bc88-4217370deeae
+# ╠═d1dc1c2e-a0fa-41fc-bc88-4217370deeae
 # ╠═5fe60f3d-8166-4e22-b590-ff9a58b7d465
 # ╠═220e50cf-ab05-4723-9f21-277142f4f618
 # ╠═eda7bb3f-4888-43a8-ab67-a7c2f875d582
@@ -403,10 +413,12 @@ and many more.
 # ╠═01b81672-f5b4-4851-9b4b-c0621f567caf
 # ╟─c4ff12c5-2993-4f44-afc9-a6b83e9928fd
 # ╠═4f05adfa-4e27-4e20-a513-f5f68c3f0479
+# ╠═a0616435-6830-4c8a-b5e2-d405f307c5ad
 # ╠═c6242096-6d68-4022-be6c-fe03983ad9bd
 # ╠═5395c18a-2609-4477-9e2e-20313b1cba7d
 # ╟─87b3b5d1-a0f5-427e-9de3-bcf2946a05d6
 # ╟─afcbb250-599c-4dd2-ac97-fa6d515e9305
+# ╠═625926a5-feb3-4792-8953-bf9e60c41d5f
 # ╠═e08b6428-77db-4a35-9f82-b90526deb3bf
 # ╠═33615215-fdea-4a27-a086-348d10a774f5
 # ╠═cc6f8923-421c-4c8b-984b-78a51781bb2d
@@ -419,6 +431,7 @@ and many more.
 # ╟─f9566e9e-b05f-4fee-9756-25398595bfa9
 # ╠═a191eb5e-4778-46fc-b62d-4ca1b9273154
 # ╠═d0fb1d08-7f16-4cca-bd93-7efe351a70ef
+# ╠═6f39f841-4db3-4412-87d7-8b4f00c94d33
 # ╟─700d57e9-5734-47d5-aba3-6c66ccb4b430
 # ╠═341a1172-93da-4c05-9e06-1ffd2cd92695
 # ╟─bceb445c-f755-429e-a75d-871fbc767510
