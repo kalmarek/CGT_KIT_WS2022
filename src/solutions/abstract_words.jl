@@ -15,8 +15,8 @@ Base.one(w::AbstractWord) = one(typeof(w))
 Base.copy(w::AbstractWord) = one(w) * w
 Base.isone(w::AbstractWord) = iszero(length(w))
 
-function Base.:*(w::AbstractWord, v::AbstractWord)
-    return append!(one(w), w, v)
+function Base.:*(w::AbstractWord, v::AbstractWord...)
+    return append!(one(w), w, v...)
 end
 
 Base.inv(w::AbstractWord, A::Alphabet) = inv!(one(w), w, A)
