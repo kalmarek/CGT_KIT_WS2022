@@ -7,6 +7,9 @@ end
 Base.one(::Type{Word{T}}) where {T} = Word(Vector{T}())
 Base.resize!(w::Word, n) = resize!(w.letters, n)
 
+Base.popfirst!(w::Word) = popfirst!(w.letters)
+Base.prepend!(w::Word, v::AbstractWord) = prepend!(w.letters, v)
+
 # Implement abstract Vector interface
 Base.size(w::Word) = size(w.letters)
 Base.getindex(w::Word, i::Int) = w.letters[i]

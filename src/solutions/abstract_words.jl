@@ -8,12 +8,16 @@ Interface_.
  * `Base.one(::Type{W})` if possible, otherwise `one(w::W)`,
  * `Base.resize!(w::W, n)` resizes word `w` in-place, adding new space at the
    end of `w`. The content of added space is undefined.
+ * `Base.pop!(w::W)` remove the first letter from `w` and return it.
+ * `Base.prepend!(w::W, v::AbstractWord)` modifies `w` in-place to contain `v*w`.
 """
 abstract type AbstractWord{T} <: AbstractVector{T} end
 
 Base.one(w::AbstractWord) = one(typeof(w))
 Base.copy(w::AbstractWord) = one(w) * w
 Base.isone(w::AbstractWord) = iszero(length(w))
+# for better indexing
+Base.IndexStyle(::Type{<:AbstractWord}) = IndexLinear()
 
 function Base.:*(w::AbstractWord, v::AbstractWord...)
     return append!(one(w), w, v...)
