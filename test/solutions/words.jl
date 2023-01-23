@@ -36,4 +36,8 @@
     @test CGT.free_rewrite(y * Y, A) == ε
     @test CGT.free_rewrite(y * x * X * Y, A) == ε
     @test CGT.free_rewrite(x * y * X * Y, A) == x * y * X * Y
+
+    @test CGT.issuffix(x * X, x * x * X)
+    @test !CGT.issuffix(x * X, x * x)
+    @test !CGT.issuffix(x * X, X)
 end
