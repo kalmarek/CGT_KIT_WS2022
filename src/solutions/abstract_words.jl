@@ -70,3 +70,29 @@ function free_rewrite(w::AbstractWord, A::Alphabet)
     end
     return out
 end
+
+"""
+    issuffix(v::AbstractWord, w::AbstractWord)
+Check if `v` is a suffix of `w`.
+"""
+function issuffix(v::AbstractWord, w::AbstractWord)
+    length(v) > length(w) && return false
+    offset = length(w) - length(v)
+    for i in eachindex(v)
+        @inbounds v[i] == w[offset+i] || return false
+    end
+    return true
+end
+
+"""
+    isprefix(v::AbstractWord, w::AbstractWord)
+Check if `v` is a prefix of `w`.
+"""
+function isprefix(v::AbstractWord, w::AbstractWord)
+    length(v) > length(w) && return false
+    for i in eachindex(v)
+        @inbounds v[i] == w[i] || return false
+    end
+    return true
+end
+
