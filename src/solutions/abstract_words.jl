@@ -23,6 +23,8 @@ function Base.:*(w::AbstractWord, v::AbstractWord...)
     return append!(one(w), w, v...)
 end
 
+Base.:^(w::AbstractWord, n::Integer) = repeat(w, n)
+
 Base.inv(w::AbstractWord, A::Alphabet) = inv!(one(w), w, A)
 
 function inv!(out::AbstractWord, w::AbstractWord, A::Alphabet)
@@ -46,6 +48,8 @@ function Base.show(io::IO, ::MIME"text/plain", w::AbstractWord)
         end
     end
 end
+
+Base.show(io::IO, w::AbstractWord) = Base.show(io, MIME"text/plain"(), w)
 
 function string_repr(w::AbstractWord, A::Alphabet)
     if isone(w)
@@ -96,3 +100,34 @@ function isprefix(v::AbstractWord, w::AbstractWord)
     return true
 end
 
+# function Base.popfirst!(w::AbstractWord)
+#     @assert !isone(w)
+#     letter = first(w)
+#     for i in firstindex(w):lastindex(w)-1
+#         w[i] = w[i+1]
+#     end
+#     resize!(w, length(w) - 1)
+#     return letter
+# end
+
+# function Base.prepend!(w::AbstractWord, v::AbstractWord)
+#     fi = firstindex(w)
+#     li = lastindex(w)
+#     resize!(w, length(w) + length(v))
+#     for idx in li:-1:fi
+#         @inbounds w[idx+length(v)] = w[idx]
+#     end
+#     for (idx, l) in pairs(v)
+#         @inbounds w[idx] = l
+#     end
+#     return w
+# end
+
+# function Base.prepend!(w::AbstractWord, v::AbstractWord)
+#     lw = length(w)
+#     lv = length(v)
+#     w = resize!(w, lw + lv)
+#     w = copyto!(w, lv + 1, w, firstindex(w), lw)
+#     w = copyto!(w, v)
+#     return w
+# end

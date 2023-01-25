@@ -4,6 +4,8 @@ end
 
 # AbstractWord interface
 # the identity
+Word(v::AbstractVector{T}) where {T<:Integer} = Word{T}(v)
+
 Base.one(::Type{Word{T}}) where {T} = Word(Vector{T}())
 Base.resize!(w::Word, n) = resize!(w.letters, n)
 
