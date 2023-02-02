@@ -19,6 +19,12 @@ Base.isone(w::AbstractWord) = iszero(length(w))
 # for better indexing
 Base.IndexStyle(::Type{<:AbstractWord}) = IndexLinear()
 
+function Base.similar(w::AbstractWord, ::Type, dims::Base.Dims{1})
+    ans = one(w)
+    resize!(ans, first(dims))
+    return ans
+end
+
 function Base.:*(w::AbstractWord, v::AbstractWord...)
     return append!(one(w), w, v...)
 end
@@ -99,6 +105,8 @@ function isprefix(v::AbstractWord, w::AbstractWord)
     end
     return true
 end
+
+suffixes(w::AbstractWord) = (w[i:end] for i in firstindex(w):lastindex(w))
 
 # function Base.popfirst!(w::AbstractWord)
 #     @assert !isone(w)
