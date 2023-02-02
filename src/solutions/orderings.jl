@@ -17,6 +17,8 @@ function LenLex(A::Alphabet{T}, letters::AbstractVector{T}) where {T}
     return LenLex(A, invperm(perm))
 end
 
+alphabet(llex::LenLex) = llex.alphabet
+
 function lt(o::LenLex, lp::Integer, lq::Integer)
     return o.letters_order[lp] < o.letters_order[lq]
 end
@@ -38,6 +40,6 @@ end
 
 function Base.show(io::IO, llex::LenLex)
     print(io, "LenLex(")
-    join(io, (llex.alphabet[i] for i in llex.letters_order), '<')
+    join(io, (alphabet(llex)[i] for i in llex.letters_order), '<')
     return print(io, ')')
 end

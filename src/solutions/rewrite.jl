@@ -60,22 +60,14 @@ function rewrite!(v::AbstractWord, w::AbstractWord, rule::Rule)
     return v
 end
 
-"""
-    rewrite!(v::AbstractWord, w::AbstractWord, rws::RewritingSystem)
-Rewrite word `w` storing the result in `v` by left using rewriting rules of
-rewriting system `rws`. See [Sims, p.66]
-"""
-function rewrite!(v::AbstractWord, w::AbstractWord, rws::AbstractVector{<:Rule})
-    v = resize!(v, 0)
-    while !isone(w)
-        push!(v, popfirst!(w))
-        for (lhs, rhs) in rws
-            if issuffix(lhs, v)
-                prepend!(w, rhs)
-                resize!(v, length(v) - length(lhs))
-                break
-            end
-        end
-    end
-    return v
+function string_repr(
+    r::Rule,
+    A::Alphabet;
+    lhspad = 2length(first(r)) - 1,
+    rhspad = 2length(last(r)) - 1,
+)
+    lhs, rhs = r
+    L = rpad(string_repr(lhs, A), lhspad)
+    R = lpad(string_repr(rhs, A), rhspad)
+    return "$L → $R"
 end
