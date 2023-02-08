@@ -23,7 +23,7 @@
    * _advanced_: parallelize the tree exploration by assigning separate threads to disjoint branches (use `Channels` for communicating the results to the main thread)
 5. Improvements to the Schreier-Sims algorithm
    * using `Word`s in generators to represent products
-   * incorporate the knowledge of the order of group into the algorithm to break quickly 
+   * incorporate the knowledge of the order of group into the algorithm to break quickly
    * probabilistic Monte-Carlo version with probabilistic verification of the results
 
 ## B. Finitely Presented Groups
@@ -62,3 +62,6 @@
    * $w$ (a freely reduced word over $X$) is said to be primitive if $[w]\in F_n$ can be chosen to be a generator of some (group) generating set of size $n$, or equivalently if there exist an automorphism $f\in \operatorname{Aut}(F_n)$ such that $f([x_1]) = [w]$.
    * R.C. Lyndon and P.E. Schupp in Chapter I.4 of _Combinatorial Group Theory_ (see Proposition 4.19) give a description of an algorithm which decides if $w$ is primitive. Learn more about the complexity of the algorithm and implement it in any form (see e.g. [various heuristics](https://doi.org/10.1080/10586458.2005.10128906), [a stochastic search](https://doi.org/10.1016/j.jsc.2006.04.001) and a non-explicit [proof of polynomial time](https://arxiv.org/abs/math/0608779)).
    * _advanced_: Implement the algorithm for a tuple of words $(w_1, \ldots, w_n)$ which will determine an automorphism $f\in \operatorname{Aut}(F_n)$ such that $f(x_i) = w_1$ if such $f$ exists.
+
+## Project Selection
+Project selection is located [here](https://forms.gle/UJ3yYfU2nS4q2Ner5).
